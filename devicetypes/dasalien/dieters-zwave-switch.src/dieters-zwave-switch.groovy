@@ -58,8 +58,8 @@ metadata {
 }
 
 def parse(String description) {
-	log.debug "Parse description ${description}"
-    log.debug "parse() >> zwave.parse($description)"
+	//log.debug "Parse description ${description}"
+    //log.debug "parse() >> zwave.parse($description)"
     
     def result = null
 	def cmd = zwave.parse(description, [0x20: 1, 0x70: 1])
@@ -76,7 +76,7 @@ def parse(String description) {
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd) {
-    log.debug "basicv1.BasicReport Command Value: ${cmd.value}"
+    //log.debug "basicv1.BasicReport Command Value: ${cmd.value}"
 
 	def result = null
     
@@ -89,22 +89,22 @@ def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd) {
 
     if (cmd.value == 0) {
     	if (state.poll == false) {
-    		log.debug "Create a time out"
+    		//log.debug "Create a time out"
     		//Create a time out. If not two presses within a minute, it's considered a system event
     		state.Off = (state.Off + 1)
-        	log.debug "State: ${state.Off}"
+        	//log.debug "State: ${state.Off}"
 
 			if (state.Off == 2) {
-	        	log.debug "State is 2: ${state.Off}"
+	        	//log.debug "State is 2: ${state.Off}"
 	            state.Off = 0
 	  			result = [name: "button", value: "button 1", data:"pushed", descriptionText: "Virtual button 1 was pushed", isStateChange:true]
 	    	} else {
-	    		log.debug "State is: ${state.Off}"
+	    		//log.debug "State is: ${state.Off}"
 	            result = [name: "switch", value: cmd.value ? "on" : "off", type: "physical"]
 	            runIn(20, checkOffState)
 	        }
         } else {
-        	log.debug "Resetting poll"
+        	//log.debug "Resetting poll"
             state.poll = false
         }
     }
@@ -113,12 +113,12 @@ def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd) {
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicSet cmd) {
-	log.debug "basicv1 Command Value: ${cmd.value}"
+	//log.debug "basicv1 Command Value: ${cmd.value}"
  	[name: "switch", value: cmd.value ? "on" : "off", type: "physical"]
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.switchbinaryv1.SwitchBinaryReport cmd) {
-	log.debug "switchbinaryv1 Command Value: ${cmd.value}"
+	//log.debug "switchbinaryv1 Command Value: ${cmd.value}"
   	[name: "switch", value: cmd.value ? "on" : "off", type: "digital"]
 }
 
@@ -167,7 +167,7 @@ def off() {
 }
 
 def poll() {
-	log.debug "Poll Received"
+	//log.debug "Poll Received"
     state.poll = true
 	delayBetween([
 		zwave.switchBinaryV1.switchBinaryGet().format(),
@@ -176,7 +176,7 @@ def poll() {
 }
 
 def refresh() {
-	log.debug "Refresh Received"
+	//log.debug "Refresh Received"
     state.poll = true
     delayBetween([
 		zwave.switchBinaryV1.switchBinaryGet().format(),
@@ -211,5 +211,5 @@ def invertSwitch(invert=true) {
 //Reset the pending double click
 def checkOffState() {
   	state.Off = 0
-   	log.debug "checkOffState Set State to: ${state.Off}"
+   	//log.debug "checkOffState Set State to: ${state.Off}"
 }

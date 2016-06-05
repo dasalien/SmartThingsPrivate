@@ -77,11 +77,11 @@ metadata {
 }
 
 def parse(String description) {
-	log.debug "parse() >> $description"
-    log.debug "parse() >> zwave.parse($description)"
+	//log.debug "parse() >> $description"
+    //log.debug "parse() >> zwave.parse($description)"
 	def result = null
 	if (description != "updated") {
-		log.debug "parse() >> zwave.parse($description)"
+		//log.debug "parse() >> zwave.parse($description)"
 		def cmd = zwave.parse(description, [0x20: 1, 0x26: 1, 0x70: 1])
 		if (cmd) {
 			result = zwaveEvent(cmd)
@@ -125,7 +125,7 @@ private dimmer2Events(physicalgraph.zwave.Command cmd) {
     def value = (cmd.value ? "on" : "off")
 	def result = null
     
-    log.debug "State: ${state.Off}"
+    //log.debug "State: ${state.Off}"
     if (cmd.value != 0) {
     	state.Off = 0
         state.poll = false
@@ -133,22 +133,22 @@ private dimmer2Events(physicalgraph.zwave.Command cmd) {
 	}        
     if (cmd.value == 0) {
     	if (state.poll == false) {
-    		log.debug "Create a time out"
+    		//log.debug "Create a time out"
     		//Create a time out. If not two presses within a minute, it's considered a system event
     		state.Off = (state.Off + 1)
-        	log.debug "State: ${state.Off}"
+        	//log.debug "State: ${state.Off}"
             
 			if (state.Off == 2) {
-            	log.debug "State is 2: ${state.Off}"
+            	//log.debug "State is 2: ${state.Off}"
             	state.Off = 0
   				result = [createEvent(name: "button", value: "button 1", data:"pushed", descriptionText: "Virtual button 1 was pushed", isStateChange:true)]
     		} else {
-            	log.debug "State is: ${state.Off}"
+            	//log.debug "State is: ${state.Off}"
         	    result = [createEvent(name: "switch", value: value)]
     	        runIn(20, checkOffState)
 	        }
 		} else {
-        	log.debug "Resetting poll"
+        	//log.debug "Resetting poll"
             state.poll = false
         }
     }
@@ -162,7 +162,7 @@ private dimmer2Events(physicalgraph.zwave.Command cmd) {
 
 
 def zwaveEvent(physicalgraph.zwave.commands.configurationv1.ConfigurationReport cmd) {
-	log.debug "ConfigurationReport $cmd"
+	//log.debug "ConfigurationReport $cmd"
 	def value = "when off"
 	if (cmd.configurationValue[0] == 1) {value = "when on"}
 	if (cmd.configurationValue[0] == 2) {value = "never"}
@@ -209,7 +209,7 @@ def off() {
 }
 
 def setLevel(value) {
-	log.debug "setLevel >> value: $value"
+	//log.debug "setLevel >> value: $value"
 	def valueaux = value as Integer
 	def level = Math.max(Math.min(valueaux, 99), 0)
 	if (level > 0) {
@@ -232,13 +232,13 @@ def setLevel(value, duration) {
 }
 
 def poll() {
-	log.debug "Poll Received"
+	//log.debug "Poll Received"
     state.poll = true
     zwave.switchMultilevelV1.switchMultilevelGet().format()
 }
 
 def refresh() {
-	log.debug "refresh() is called"
+	//log.debug "refresh() is called"
     state.poll = true
 	def commands = []
 	commands << zwave.switchMultilevelV1.switchMultilevelGet().format()
@@ -275,5 +275,5 @@ def invertSwitch(invert=true) {
 //Reset the pending double click
 def checkOffState() {
   	state.Off = 0
-   	log.debug "checkOffState Set State to: ${state.Off}"
+   	l//og.debug "checkOffState Set State to: ${state.Off}"
 }
