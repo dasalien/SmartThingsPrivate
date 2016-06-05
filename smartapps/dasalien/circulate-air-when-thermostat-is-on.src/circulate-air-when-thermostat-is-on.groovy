@@ -48,88 +48,85 @@ def updated() {
 
 def initialize() {
     subscribe(thermostat, "thermostatMode", runFans);
-    state.level0 = 0
-    state.level1 = 0
-    state.level2 = 0
-    state.level3 = 0
-    state.state0 = 0
-    state.state1 = 0
-    state.state2 = 0
-    state.state3 = 0
+    subscribe(thermostat, "thermostatOperatingState", runFansOpState);
 }
 
+def runFansOpState(evt) {
+	log.debug "Received event: ${evt}"
+    //def thermostatState = settings.thermostat.currentValue('thermostatMode')
+	def fanlevel = fans*.currentValue('level')
+	def fanstate = fans*.currentValue('switch')
+    def statestring = ""
+    def levelstring = ""
+	def idxstate = 0
+    def idxlevel = 0
+
+    if(evt != 'idle') {
+		//Remember current status
+		fanlevel.eachWithIndex { val, idx ->
+            statestring = "FanState${idx}"
+            levelstring = "FanLevel${idx}"
+            state["${statestring}"] = fanstate.getAt(idx)
+            state["${levelstring}"] = val
+            fans[idx].setLevel(80)
+            fans[idx].on()
+		}
+    } else {
+    	log.debug "Not running due to thermostat mode"
+		//Restore previous settings
+		fanlevel.eachWithIndex { val, idx ->
+            statestring = "FanState${idx}"
+            idxstate = state["${statestring}"]
+            levelstring = "FanLevel${idx}"
+            idxlevel = state["${levelstring}"]
+            //log.debug "Index: ${idx} State: ${idxstate} Level: ${idxlevel}"
+            fans[idx].setLevel(idxlevel)
+            if(idxstate == "on") {
+             	fans[idx].on()
+            } else {
+              	fans[idx].off()
+            }
+		}
+    }
+}
+
+
 def runFans(evt) {
+    log.debug "Received event runFans: ${evt}"
     def thermostatMode = settings.thermostat.currentValue('thermostatMode')
 	def fanlevel = fans*.currentValue('level')
 	def fanstate = fans*.currentValue('switch')
-    
-    log.debug "Thermostat: $thermostatMode"
+    def statestring = ""
+    def levelstring = ""
+	def idxstate = 0
+    def idxlevel = 0
+
+	log.debug "Thermostat: $thermostatMode"
 
     if(thermostatMode != 'off') {
 		//Remember current status
 		fanlevel.eachWithIndex { val, idx ->
-            //There sure is a better way..
-            if (idx == 0) {
-            	state.level0 = val
-                state.state0 = fanstate.getAt(idx)
-                fans[idx].setLevel(80)
-                fans[idx].on()
-            }
-            if (idx == 1) {
-            	state.level1 = val
-                state.state1 = fanstate.getAt(idx)
-                fans[idx].setLevel(80)
-                fans[idx].on()
-            }
-            if (idx == 2) {
-            	state.level2 = val
-                state.state2 = fanstate.getAt(idx)
-                fans[idx].setLevel(80)
-                fans[idx].on()
-            }
-            if (idx == 3) {
-            	state.level3 = val
-                state.state3 = fanstate.getAt(idx)
-                fans[idx].setLevel(80)
-                fans[idx].on()
-            }           
+            statestring = "FanState${idx}"
+            levelstring = "FanLevel${idx}"
+            state["${statestring}"] = fanstate.getAt(idx)
+            state["${levelstring}"] = val
+            fans[idx].setLevel(80)
+            fans[idx].on()
 		}
     } else {
     	log.debug "Not running due to thermostat mode"
-        //Restore previous settings
+		//Restore previous settings
 		fanlevel.eachWithIndex { val, idx ->
-            //There sure is a better way..
-            if (idx == 0) {
-                fans[idx].setLevel(state.level0)
-                if(state.state0 == "on") {
-                	fans[idx].on()
-                } else {
-                	fans[idx].off()
-                }
-            }
-            if (idx == 1) {
-            	fans[idx].setLevel(state.level1)
-                if(state.state1 == "on") {
-                	fans[idx].on()
-                } else {
-                	fans[idx].off()
-                }
-            }
-            if (idx == 2) {
-            	fans[idx].setLevel(state.level2)
-                if(state.state2 == "on") {
-                	fans[idx].on()
-                } else {
-                	fans[idx].off()
-                }
-            }
-            if (idx == 3) {
-            	fans[idx].setLevel(state.level3)
-                if(state.state3 == "on") {
-                	fans[idx].on()
-                } else {
-                	fans[idx].off()
-                }
+            statestring = "FanState${idx}"
+            idxstate = state["${statestring}"]
+            levelstring = "FanLevel${idx}"
+            idxlevel = state["${levelstring}"]
+            //log.debug "Index: ${idx} State: ${idxstate} Level: ${idxlevel}"
+            fans[idx].setLevel(idxlevel)
+            if(idxstate == "on") {
+             	fans[idx].on()
+            } else {
+              	fans[idx].off()
             }
 		}
     }
