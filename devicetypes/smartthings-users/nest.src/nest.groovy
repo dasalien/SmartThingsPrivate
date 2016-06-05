@@ -494,13 +494,17 @@ def poll() {
 		}
 
 		if (data.shared.hvac_ac_state) {
+        	log.debug "Cooling"
 			sendEvent(name: 'thermostatOperatingState', value: "cooling")
 		} else if (data.shared.hvac_heater_state) {
-			sendEvent(name: 'thermostatOperatingState', value: "heating")
+			log.debug "Heating"
+            sendEvent(name: 'thermostatOperatingState', value: "heating")
 		} else if (data.shared.hvac_fan_state) {
-			sendEvent(name: 'thermostatOperatingState', value: "fan only")
+			log.debug "Fan Only"
+            sendEvent(name: 'thermostatOperatingState', value: "fan only")
 		} else {
-			sendEvent(name: 'thermostatOperatingState', value: "idle")
+			log.debug "Idle"
+            sendEvent(name: 'thermostatOperatingState', value: "idle")
 		}
 	}
 }
