@@ -47,29 +47,33 @@ def updated() {
 }
 
 def initialize() {
-    subscribe(thermostat, "thermostatMode", runFans);
+    subscribe(thermostat, "thermostatMode", runFansOpState);
     subscribe(thermostat, "thermostatOperatingState", runFansOpState);
 }
 
 def runFansOpState(evt) {
-	log.debug "Received event: ${evt}"
-    //def thermostatState = settings.thermostat.currentValue('thermostatMode')
-	def fanlevel = fans*.currentValue('level')
+    log.debug "runFansOpState Received event"
+    def thermostatMode = settings.thermostat.currentValue('thermostatMode')
+    def thermostatOpState = settings.thermostat.currentValue('thermostatOperatingState')
+	log.debug "thermostatMode: $thermostatMode"
+	log.debug "thermostatOpState: $thermostatOpState"
+	
+    def fanlevel = fans*.currentValue('level')
 	def fanstate = fans*.currentValue('switch')
     def statestring = ""
     def levelstring = ""
 	def idxstate = 0
     def idxlevel = 0
 
-    if(evt != 'idle') {
+    if(thermostatOpState != 'idle') {
 		//Remember current status
 		fanlevel.eachWithIndex { val, idx ->
             statestring = "FanState${idx}"
             levelstring = "FanLevel${idx}"
             state["${statestring}"] = fanstate.getAt(idx)
             state["${levelstring}"] = val
-            fans[idx].setLevel(80)
-            fans[idx].on()
+            log.debug "Index: ${idx} State: ${fanstate.getAt(idx)} Level: ${val}"
+            fans[idx].setLevel(60)
 		}
     } else {
     	log.debug "Not running due to thermostat mode"
@@ -79,22 +83,35 @@ def runFansOpState(evt) {
             idxstate = state["${statestring}"]
             levelstring = "FanLevel${idx}"
             idxlevel = state["${levelstring}"]
-            //log.debug "Index: ${idx} State: ${idxstate} Level: ${idxlevel}"
-            fans[idx].setLevel(idxlevel)
+            log.debug "Index: ${idx} Stored State: ${idxstate} Level: ${idxlevel}"
+            log.debug "Index: ${idx} Current State: ${fanstate.getAt(idx)} Level: ${val}"
+            
+            //Reset if not already different settings            
+            if(idxlevel < val) {
+            	log.debug "Setting level to ${idxlevel}"
+            	fans[idx].setLevel(idxlevel)
+            }
             if(idxstate == "on") {
-             	fans[idx].on()
+            	log.debug "idxstate is on"
+             	if(fanstate.getAt(idx) == "on") { 
+                	log.debug "fan is currently on"
+                }
             } else {
-              	fans[idx].off()
+				log.debug "idxstate is off - turn fan off"
+				fans[idx].off()
             }
 		}
     }
+
 }
 
 
 def runFans(evt) {
-    log.debug "Received event runFans: ${evt}"
+    log.debug "runFans Received event: ${evt}"
     def thermostatMode = settings.thermostat.currentValue('thermostatMode')
-	def fanlevel = fans*.currentValue('level')
+	log.debug "Thermostat: $thermostatMode"
+    
+    def fanlevel = fans*.currentValue('level')
 	def fanstate = fans*.currentValue('switch')
     def statestring = ""
     def levelstring = ""
@@ -103,7 +120,7 @@ def runFans(evt) {
 
 	log.debug "Thermostat: $thermostatMode"
 
-    if(thermostatMode != 'off') {
+    if((thermostatMode != 'off') || (thermostatMode != 'idle')){
 		//Remember current status
 		fanlevel.eachWithIndex { val, idx ->
             statestring = "FanState${idx}"
