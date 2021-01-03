@@ -73,7 +73,7 @@ def runFansOpState(evt) {
             state["${statestring}"] = fanstate.getAt(idx)
             state["${levelstring}"] = val
             log.debug "Index: ${idx} State: ${fanstate.getAt(idx)} Level: ${val}"
-            fans[idx].setLevel(60)
+            fans[idx].setLevel(40)
 		}
     } else {
     	log.debug "Not running due to thermostat mode"

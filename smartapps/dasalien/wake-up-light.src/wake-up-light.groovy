@@ -17,7 +17,7 @@
         name: "Wake-up Light",
         namespace: "dasalien",
         author: "Dieter Rothhardt",
-        description: "Switch on switch at a certain time every day",
+        description: "Switch on switch at a certain time every weekday",
         category: "Convenience",
         iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
         iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
@@ -26,7 +26,7 @@
     
     preferences {
     	section("At this time every day...") {
-    		input "theTime", "time", title: "Time to execute every day"            
+    		input "theTime", "time", title: "Time to execute every weekday"            
     	}
     	section("... turn on these switches") {
     		input "theSwitch", "capability.switch", title: "Which?", required: true, multiple: true
