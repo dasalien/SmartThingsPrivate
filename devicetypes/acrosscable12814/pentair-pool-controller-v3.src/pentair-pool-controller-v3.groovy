@@ -43,8 +43,8 @@ metadata {
         capability "acrosscable12814.chlorinatorSetpoint"
         capability "acrosscable12814.chlorinatorSuperChlorination"
         capability "acrosscable12814.chlorinatorStatus"
-        //capability "acrosscable12814.updateDateAndTime"
-        capability "momentary"
+        capability "acrosscable12814.updateDateAndTime"
+//        capability "momentary"
         
 		//commands
         command "toggleMasterControl" , ["string"]
@@ -211,7 +211,7 @@ def setChlorinatorOperatingState(mode) {
 
 // parse routines
 def parseChlor(physicalgraph.device.HubResponse hubResponse) {
-	log.debug "------------- parseChlor -------------"
+	//log.debug "------------- parseChlor -------------"
     
 	def json = hubResponse.json
     def name
@@ -254,7 +254,7 @@ def parseChlor(physicalgraph.device.HubResponse hubResponse) {
 
 
 def parseAction(physicalgraph.device.HubResponse hubResponse) {
-	log.debug "------------- parseAction -------------"  
+	//log.debug "------------- parseAction -------------"  
 	def json = hubResponse.json
 	def celsiusUnit = "°C" //°
     def fahrenheitUnit = "°F"
@@ -341,7 +341,7 @@ def parseAction(physicalgraph.device.HubResponse hubResponse) {
 
 
 def parseCircuit(physicalgraph.device.HubResponse hubResponse) {
-    log.debug "------------- parseCircuit -------------"  
+    //log.debug "------------- parseCircuit -------------"  
 
 	def json = hubResponse.json
     if (!json) {
@@ -393,7 +393,7 @@ def parseCircuit(physicalgraph.device.HubResponse hubResponse) {
 
 
 def parseUOM(physicalgraph.device.HubResponse hubResponse) {
-	log.debug "------------- parseUOM -------------"
+	//log.debug "------------- parseUOM -------------"
     
 	def json = hubResponse.json
     //log.debug json
@@ -404,33 +404,38 @@ def parseUOM(physicalgraph.device.HubResponse hubResponse) {
 }
 
 def parseTemperature(physicalgraph.device.HubResponse hubResponse) {
-	log.debug "------------- parseTemperature -------------"
+	//log.debug "------------- parseTemperature -------------"
 	def json = hubResponse.json
     state.temperature = json.temperature	
 	def temperatures = json.temperature
     
-    if (state.POOLstate?.is(1)) {
+    log.debug("Pool State: ${state.operatingMode}")
+    if (state.operatingMode == "Pool") {
     	state.poolTempLK = temperatures.poolTemp
     }
-
+	log.debug("Incoming Pool Temp: ${temperatures.poolTemp}")
+	log.debug("Considered Pool Temp: ${state.poolTempLK}")
+    
     def freeze = temperatures.freeze?.is(1) ? "Freeze Protection" : "Off"
     def heater = temperatures.heaterActive?.is(1) ? "Heating" : "Off"
-    def tempPoolTemp = state.SPAstate?.is(1) ? state.poolTempLK : temperatures.poolTemp
+//    def tempPoolTemp = state.SPAstate?.is(1) ? state.poolTempLK : temperatures.poolTemp
 
 	def celsiusUnit = "C" //°
     def fahrenheitUnit = "F"
     def unit = temperatureUnit == "C" ? celsiusUnit : fahrenheitUnit
     
     def airTemp = temperatures.airTemp
-    def poolTemp = tempPoolTemp
+//    def poolTemp = tempPoolTemp
+    def poolTemp = state.poolTempLK
     def spaTemp = temperatures.spaTemp
     def poolSetPoint = temperatures.poolSetPoint
     def spaSetPoint = temperatures.spaSetPoint
 
 	if (temperatureUnit == "auto") {
-    	unit = celsiusUnit
+		unit = celsiusUnit
 		airTemp = (state.uom == "Fahrenheit" ? fahrenheitToCelsius(temperatures.airTemp) : temperatures.airTemp).toDouble().round(1)
-	    poolTemp = (state.uom == "Fahrenheit" ? fahrenheitToCelsius(tempPoolTemp) : tempPoolTemp).toDouble().round(1)
+//	    poolTemp = (state.uom == "Fahrenheit" ? fahrenheitToCelsius(tempPoolTemp) : tempPoolTemp).toDouble().round(1)
+	    poolTemp = (state.uom == "Fahrenheit" ? fahrenheitToCelsius(state.poolTempLK) : state.poolTempLK).toDouble().round(1)
 	    spaTemp = (state.uom == "Fahrenheit" ? fahrenheitToCelsius(temperatures.spaTemp) : temperatures.spaTemp).toDouble().round(1)
 	    poolSetPoint = (state.uom == "Fahrenheit" ? fahrenheitToCelsius(temperatures.poolSetPoint) : temperatures.poolSetPoint).toDouble().round(0)
 	    spaSetPoint = (state.uom == "Fahrenheit" ? fahrenheitToCelsius(temperatures.spaSetPoint) : temperatures.spaSetPoint).toDouble().round(0)
@@ -453,7 +458,7 @@ def parseTemperature(physicalgraph.device.HubResponse hubResponse) {
 
 
 def parseSchedule(physicalgraph.device.HubResponse hubResponse) {
-    log.debug "------------- parseSchedule -------------"   
+    //log.debug "------------- parseSchedule -------------"   
     def json = hubResponse.json
     if (!json) {
        log.error "parsed lan message was nil"
@@ -564,7 +569,7 @@ def parseSchedule(physicalgraph.device.HubResponse hubResponse) {
 
 
 def parseDevice(physicalgraph.device.HubResponse hubResponse) {
-    log.debug "------------- parseDevice -------------"  
+    //log.debug "------------- parseDevice -------------"  
 
 	def msg = hubResponse.xml
     log.debug "msg = ${msg}"
@@ -667,7 +672,6 @@ def initialize() {
     state.airTemp = 0
     state.poolTemp = 0
     state.poolTempLK = 0
-    state.POOL = 0
     state.pumpStatus = "off"
 
     sendEvent(name: "switch", value: "off")
