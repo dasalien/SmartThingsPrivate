@@ -12,7 +12,7 @@
  *
  */
 metadata {
-	definition (name: "Dieter's Z-Wave Switch", namespace: "dasalien", author: "Dieter Rothhardt") {
+	definition (name: "Dieter's Z-Wave Switch", namespace: "dasalien", author: "Dieter Rothhardt", runLocally: true, executeCommandsLocally: false) {
 		capability "Actuator"
 		capability "Indicator"
 		capability "Switch"
@@ -63,14 +63,15 @@ def parse(String description) {
     
     def result = null
 	def cmd = zwave.parse(description, [0x20: 1, 0x70: 1])
-	if (cmd) {
+	//log.debug "DIR cmd: ${cmd}"
+    if (cmd) {
 		result = createEvent(zwaveEvent(cmd))
 	}
 	if (result?.name == 'hail' && hubFirmwareLessThan("000.011.00602")) {
 		result = [result, response(zwave.basicV1.basicGet())]
-		log.debug "Was hailed: requesting state update"
+		//log.debug "Was hailed: requesting state update"
 	} else {
-		log.debug "Parse returned ${result?.descriptionText}"
+		//log.debug "Parse returned ${result?.descriptionText}"
 	}
 	return result
 }
@@ -80,7 +81,7 @@ def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd) {
 
 	def result = null
     
-	log.debug "State: ${state.Off}"
+	//log.debug "State: ${state.Off}"
     if (cmd.value == 255) {
     	state.Off = 0
         state.poll = false
@@ -130,24 +131,25 @@ def zwaveEvent(physicalgraph.zwave.commands.configurationv1.ConfigurationReport 
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.hailv1.Hail cmd) {
-	log.debug "hailv1 Command Value: ${cmd.value}"
+	//log.debug "hailv1 Command Value: ${cmd.value}"
     [name: "hail", value: "hail", descriptionText: "Switch button was pressed", displayed: false]
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.manufacturerspecificv2.ManufacturerSpecificReport cmd) {
-	log.debug "manufacturerId:   ${cmd.manufacturerId}"
-	log.debug "manufacturerName: ${cmd.manufacturerName}"
-	log.debug "productId:        ${cmd.productId}"
-	log.debug "productTypeId:    ${cmd.productTypeId}"
+	//log.debug "manufacturerId:   ${cmd.manufacturerId}"
+	//log.debug "manufacturerName: ${cmd.manufacturerName}"
+	//log.debug "productId:        ${cmd.productId}"
+	//log.debug "productTypeId:    ${cmd.productTypeId}"
 	def msr = String.format("%04X-%04X-%04X", cmd.manufacturerId, cmd.productTypeId, cmd.productId)
-	updateDataValue("MSR", msr)
+	//log.debug "msr:    ${msr}"
+    updateDataValue("MSR", msr)
 	updateDataValue("manufacturer", cmd.manufacturerName)
 	createEvent([descriptionText: "$device.displayName MSR: $msr", isStateChange: false])
 }
 
 
 def zwaveEvent(physicalgraph.zwave.Command cmd) {
-	log.debug "other Command Value: ${cmd.value}"
+	//log.debug "other Command Value: ${cmd.value}"
 	// Handles all Z-Wave commands we aren't interested in
 	[:]
 }

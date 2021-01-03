@@ -15,9 +15,9 @@
  */
 //player mac adddresses, for each required player
 preferences {
-	input("confp1", "string", title:"Enter Player 1 MAC",defaultValue:"00:00:00:00:00:00", required:true, displayDuringSetup:true)
-    input("confp2", "string", title:"Enter Player 2 MAC",defaultValue:"00:00:00:00:00:00", required:true, displayDuringSetup:true)
-    input("confp3", "string", title:"Enter Player 3 MAC",defaultValue:"00:00:00:00:00:00", required:true, displayDuringSetup:true)
+	input("confp1", "string", title:"Enter Player 1 MAC",defaultValue:"00:04:20:1E:09:D0", required:true, displayDuringSetup:true)
+    //input("confp2", "string", title:"Enter Player 2 MAC",defaultValue:"00:00:00:00:00:00", required:true, displayDuringSetup:true)
+    //input("confp3", "string", title:"Enter Player 3 MAC",defaultValue:"00:00:00:00:00:00", required:true, displayDuringSetup:true)
 }
 
 metadata {
@@ -25,12 +25,14 @@ metadata {
 		capability "Switch"
         //custom commands for multiple players
         //use the standard (built in on/off) if you only have one player
-        command "p1On"
-        command "p1Off"
-        command "p2On"
-        command "p2Off"
-        command "p3On"
-        command "p3Off"
+        command "on"
+        command "off"
+        //command "p1On"
+        //command "p1Off"
+        //command "p2On"
+        //command "p2Off"
+        //command "p3On"
+        //command "p3Off"
         //enable and use to create the hex version of your squeeze servers CLI interface
         //ip address and port, this will need to be assigned to the "Device Network Id" field
         //after the device is added to your system
@@ -54,7 +56,8 @@ metadata {
 
 // parse events into attributes
 def parse(String description) {
-	log.debug "Parsing '${description}'"
+	log.debug "Parsing '${description}' ${state.device}"
+    return createEvent([name: "switch", value: "${state.device}", type: "physical"])
 
 }
 
@@ -62,53 +65,74 @@ private String makeNetworkId(ipaddr, port) {
 	 String hexIp = ipaddr.tokenize('.').collect { 
      String.format('%02X', it.toInteger()) 
      }.join() 
-     String hexPort = String.format('%04X', port()) 
+     String hexPort = String.format('%04X', port) 
      return "${hexIp}:${hexPort}" 
 }
 def getNID() {
-	log.debug makeNetworkId("192.168.0.2", 9000) //your squeeze server CLI interface ip address and port
+	log.debug makeNetworkId("192.168.0.2", 9090) //your squeeze server CLI interface ip address and port
 }
 
 // handle commands for multiple players
 def p1On()	{
-	//log.debug settings.confp1
+	log.debug settings.confp1
     def ha = new physicalgraph.device.HubAction("${settings.confp1} play\r\n\r\n",physicalgraph.device.Protocol.LAN, "${device.deviceNetworkId}")
+    state.device = "on"
     return ha
 }
 def p1Off()	{
-	//log.debug settings.confp1
+	log.debug settings.confp1
     def ha = new physicalgraph.device.HubAction("${settings.confp1} power 0\r\n\r\n",physicalgraph.device.Protocol.LAN, "${device.deviceNetworkId}")
+    state.device = "off"
     return ha
 }
 def p2On()	{
 	//log.debug settings.confp2
     def ha = new physicalgraph.device.HubAction("${settings.confp2} play\r\n\r\n",physicalgraph.device.Protocol.LAN, "${device.deviceNetworkId}")
+    state.device = "on"
     return ha
 }
 def p2Off()	{
 	//log.debug settings.confp2
     def ha = new physicalgraph.device.HubAction("${settings.confp2} power 0\r\n\r\n",physicalgraph.device.Protocol.LAN, "${device.deviceNetworkId}")
+    state.device = "off"
     return ha
 }
 def p3On()	{
 	//log.debug settings.confp3
     def ha = new physicalgraph.device.HubAction("${settings.confp3} play\r\n\r\n",physicalgraph.device.Protocol.LAN, "${device.deviceNetworkId}")
+    state.device = "on"
     return ha
 }
 def p3Off()	{
 	//log.debug settings.confp3
     def ha = new physicalgraph.device.HubAction("${settings.confp3} power 0\r\n\r\n",physicalgraph.device.Protocol.LAN, "${device.deviceNetworkId}")
+    state.device = "off"
     return ha
 }
 
 // command for one player only
 def on() {
-	//log.debug "Executing 'on'"    
+	log.debug "Executing 'on'"    
+    log.debug makeNetworkId("192.168.0.2", 9090)
+    log.debug "text"
+    log.debug "${settings.confp1} ${device.deviceNetworkId}"
+    
     def ha = new physicalgraph.device.HubAction("${settings.confp1} play\r\n\r\n",physicalgraph.device.Protocol.LAN, "${device.deviceNetworkId}")
+    state.device = "on"
+    //ha = createEvent([name: "switch", value: "on", type: "physical"])
+    log.debug "Executing 'on' ${ha}"
     return ha
 }
 def off() {
-	//log.debug "Executing 'off'"
+	log.debug "Executing 'off'"
+    log.debug makeNetworkId("192.168.0.2", 9090)
+    log.debug "text"
+    log.debug "${settings.confp1} ${device.deviceNetworkId}"
+    //${device.deviceNetworkId}${settings.confp1} 
     def ha = new physicalgraph.device.HubAction("${settings.confp1} power 0\r\n\r\n",physicalgraph.device.Protocol.LAN, "${device.deviceNetworkId}")
-    return ha
+    //def ha = new physicalgraph.device.HubAction("/status.html?p0=stop&player=${settings.confp1}\r\n\r\n",physicalgraph.device.Protocol.LAN, "${device.deviceNetworkId}")
+    state.device = "off"
+    //ha = createEvent([name: "switch", value: "off", type: "physical"])
+    log.debug "Executing 'off' ${ha}"
+    return ha    
 }
